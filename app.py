@@ -1,19 +1,25 @@
+import os
+
 from flask import Flask
 from flask_restful import Api
 from flask_jwt import JWT
 
-from item import Item, ItemList
+from resources.item import Item, ItemList
+from resources.store import Store, StoreList
+from resources.user import UserRegister
 from security import authenticate, identity
-from user import UserRegister
 
 app = Flask(__name__)
-app.config['PROPAGATE_EXCEPTIONS'] = True # To allow flask propagating exception even if debug is set to false on app
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///data.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PROPAGATE_EXCEPTIONS'] = True
 app.secret_key = 'jose'
 api = Api(app)
 
-jwt = JWT(app, authenticate, identity)  # /auth
-# POST {"username": "bob", "password": "asdf"}  Response: {"access_token": "xxxxx"}
+jwt = JWT(app, authenticate, identity)
 
+api.add_resource(Store, '/store/<string:name>')
+api.add_resource(StoreList, '/stores')
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
 api.add_resource(UserRegister, '/register')
